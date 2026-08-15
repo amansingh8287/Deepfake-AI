@@ -10,31 +10,40 @@ DeepGuard AI is a full-stack deepfake detection application for analyzing suspic
 
 The dashboard gives an overview of total scans, image scans, video scans, deepfakes flagged, recent scan severity, and recent detections.
 
-![DeepGuard AI Dashboard](docs/screenshots/03-dashboard.png)
+![DeepGuard AI Dashboard]
+<img width="1877" height="1030" alt="Screenshot 2026-08-15 101928" src="https://github.com/user-attachments/assets/25a81931-59e2-47e3-8cb4-dd01993ef45c" />
+
 
 ### Image Detection — Real Result
 
 The image detection page detects the face, analyzes the largest detected face region, and displays the model prediction, confidence, processing time, and detected-face count.
 
-![Image Detection Real Result](docs/screenshots/04-image-real-result.png)
+![Image Detection Real Result]
+<img width="1779" height="952" alt="Screenshot 2026-08-15 102019" src="https://github.com/user-attachments/assets/ede4a920-16e3-464c-9941-889c1a7a6bf0" />
 
 ### Image Detection — Deepfake Result
 
 Example of a suspicious image being classified as `DEEPFAKE` with a high confidence score.
 
-![Image Detection Deepfake Result](docs/screenshots/05-image-deepfake-result.png)
+![Image Detection Deepfake Result]
+<img width="1865" height="885" alt="Screenshot 2026-08-15 102202" src="https://github.com/user-attachments/assets/3989a9a4-aeac-44e9-a856-b4c81c4c2e48" />
+
 
 ### Video Detection — Real Result
 
 The video analyzer samples frames, detects faces in sampled frames, classifies the largest face in each sampled frame, and reports the aggregate result.
 
-![Video Detection Real Result](docs/screenshots/01-video-real-result.png)
+![Video Detection Real Result]
+<img width="1841" height="1019" alt="Screenshot 2026-08-15 105718" src="https://github.com/user-attachments/assets/9047ddda-2a23-4c69-a4ac-e5e0e8b833b8" />
+
 
 ### Detection History
 
 The history page records previous image/video detections with prediction, confidence, date, report, and delete actions.
 
-![Detection History](docs/screenshots/02-history.png)
+![Detection History]
+<img width="1897" height="1026" alt="Screenshot 2026-08-15 101717" src="https://github.com/user-attachments/assets/ec55a094-b568-4f16-852a-190f46b75e67" />
+
 
 ---
 
