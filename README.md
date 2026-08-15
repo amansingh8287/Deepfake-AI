@@ -1,259 +1,329 @@
 # DeepGuard AI
 
-DeepGuard AI is a final-year project for AI-based deepfake image and video detection. It combines a FastAPI backend, a face-aware computer-vision pipeline, SQLite history tracking, PDF report generation, a React dashboard, and a training/evaluation workspace for public deepfake datasets.
+DeepGuard AI is a full-stack deepfake detection application for analyzing suspicious **images and videos**. It provides a web dashboard for uploading media, running model inference, viewing confidence and detection details, reviewing scan history, and downloading reports.
 
-## Project Overview
+> **Important:** DeepGuard AI provides an AI-based prediction and should not be treated as definitive proof that media is authentic or manipulated.
 
-The system accepts uploaded images and videos, validates them, runs a local inference pipeline, and returns:
+## 📸 Application Screenshots
 
-- `REAL` or `DEEPFAKE`
-- confidence percentage
-- explanation text
-- processing time
-- suspicious video frame metadata
-- detection history
-- downloadable PDF reports
+### Dashboard
 
-The application is intentionally honest about model state:
+The dashboard gives an overview of total scans, image scans, video scans, deepfakes flagged, recent scan severity, and recent detections.
 
-- `trained` mode means a real PyTorch checkpoint was loaded from `models/`
-- `baseline` mode means no trained checkpoint was found, so deterministic artifact heuristics are used for development/demo workflows
+![DeepGuard AI Dashboard](docs/screenshots/03-dashboard.png)
 
-## Features
+### Image Detection — Real Result
 
-- Deepfake image detection with face detection and fallback full-image analysis
-- Deepfake video detection with configurable frame sampling
-- MediaPipe/OpenCV face detection fallback path
-- Modular PyTorch-compatible model loader
-- SQLite-backed detection history
-- PDF report download endpoint
-- Responsive React dashboard with scan statistics and recent activity
-- Training and evaluation scripts for datasets such as FaceForensics++, Celeb-DF, and DFDC
-- Upload validation for file extension, MIME type, and size
-- Docker support for backend deployment
+The image detection page detects the face, analyzes the largest detected face region, and displays the model prediction, confidence, processing time, and detected-face count.
 
-## Architecture
+![Image Detection Real Result](docs/screenshots/04-image-real-result.png)
 
-### Backend
+### Image Detection — Deepfake Result
 
-- `FastAPI` for REST APIs
-- `SQLAlchemy` for SQLite persistence
-- `Pydantic` settings and response schemas
-- `OpenCV`, `Pillow`, `NumPy`, `MediaPipe` for preprocessing and face detection
-- `PyTorch` + `torchvision` for checkpoint-backed inference
-- `reportlab` for PDF reports
+Example of a suspicious image being classified as `DEEPFAKE` with a high confidence score.
 
-### Frontend
+![Image Detection Deepfake Result](docs/screenshots/05-image-deepfake-result.png)
 
-- `React` + `TypeScript`
-- `Vite`
-- `Tailwind CSS`
-- `Recharts`
-- `React Query`
+### Video Detection — Real Result
 
-### Detection Pipeline
+The video analyzer samples frames, detects faces in sampled frames, classifies the largest face in each sampled frame, and reports the aggregate result.
 
-Image flow:
+![Video Detection Real Result](docs/screenshots/01-video-real-result.png)
 
-1. Validate upload
-2. Save temporary file
-3. Detect face regions
-4. Crop and normalize face candidates
-5. Run trained classifier or baseline heuristic
-6. Aggregate scores
-7. Store result in database
+### Detection History
 
-Video flow:
+The history page records previous image/video detections with prediction, confidence, date, report, and delete actions.
 
-1. Validate upload
-2. Sample frames at configurable FPS
-3. Detect dominant face or fall back to full frame
-4. Score each sampled frame
-5. Aggregate probabilities
-6. Mark suspicious frames above a threshold
-7. Store result in database
+![Detection History](docs/screenshots/02-history.png)
 
-## Project Structure
+---
+
+## ✨ Features
+
+### Image Detection
+- Upload an image from the dashboard.
+- Detect faces before classification.
+- Analyze the largest detected face region.
+- Return prediction (`REAL` / `DEEPFAKE`), confidence, processing time, faces detected, model name, mode, and explanation.
+- If no clear face is detected, return `UNKNOWN` instead of classifying the full image as a face crop.
+
+### Video Detection
+- Upload a video for frame-based analysis.
+- Configurable frame sampling.
+- Face detection on sampled frames.
+- Largest detected face is used for each sampled frame.
+- Reports overall prediction, confidence, frames analyzed, suspicious frames, faces detected, and processing time.
+- Suspicious frames include frame index, timestamp, confidence, and a note.
+
+### Dashboard
+The dashboard shows:
+- Total scans
+- Image scans
+- Video scans
+- Deepfakes flagged
+- Recent scan severity/confidence trend
+- Recent scan results
+
+### History & Reports
+- Review previous detections.
+- View file name, type, prediction, confidence, and date.
+- Download reports.
+- Delete history records.
+
+## 🧠 Machine Learning
+
+DeepGuard AI uses a trained **EfficientNet-B0** checkpoint.
 
 ```text
-backend/
-  app/
-    api/
-    ml/
-    services/
-  tests/
-frontend/
-  src/
-    components/
-    pages/
-    services/
-    types/
-training/
-docs/
-models/
+models/deepguard_efficientnet_b0.pth
+```
+
+Model name:
+
+```text
+deepguard_efficientnet_b0
+```
+
+Class mapping:
+
+```text
+fake = 0
+real = 1
+```
+
+### Training dataset
+
+The prepared dataset used:
+
+```text
+TRAIN: REAL=2779 | FAKE=2727 | TOTAL=5506
+VAL  : REAL= 599 | FAKE= 588 | TOTAL=1187
+TEST : REAL= 594 | FAKE= 576 | TOTAL=1170
+
+TOTAL FACE IMAGES: 7863
+```
+
+### Final test metrics
+
+```text
+Accuracy : 0.7821
+Precision: 0.7783
+Recall   : 0.7980
+F1 Score : 0.7880
+ROC-AUC  : 0.8713
+```
+
+Confusion matrix:
+
+```text
+[[441 135]
+ [120 474]]
+```
+
+Rows are actual `[real, fake]`; columns are predicted `[real, fake]`.
+
+These are results on the project's test split and do not guarantee the same performance on unseen real-world media.
+
+## 🔍 Inference Pipeline
+
+### Image
+
+```text
+Upload image
+    ↓
+Load image as RGB
+    ↓
+Detect faces
+    ↓
+No face → UNKNOWN
+    ↓
+Select largest detected face
+    ↓
+EfficientNet-B0 prediction
+    ↓
+Deepfake probability
+    ↓
+REAL / DEEPFAKE
+```
+
+The classifier uses the largest detected face rather than averaging predictions across all detected face regions.
+
+### Video
+
+```text
+Upload video
+    ↓
+Open with OpenCV
+    ↓
+Sample configurable frames
+    ↓
+Detect faces in each sampled frame
+    ↓
+Select largest face in each frame
+    ↓
+Classify sampled face
+    ↓
+Aggregate frame probabilities
+    ↓
+Overall REAL / DEEPFAKE
+```
+
+Suspicious frames are stored separately with their frame index, timestamp, confidence, and note.
+
+## 🏗️ Project Structure
+
+```text
+Deep fake model/
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── ml/
+│   │   └── services/
+│   ├── tests/
+│   └── .venv/
+├── frontend/
+├── models/
+│   └── deepguard_efficientnet_b0.pth
+├── training/
+├── dataset/
+├── docs/
+│   └── screenshots/
+├── reports/
+├── uploads/
+├── .env.example
+├── .gitignore
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+
+## ⚙️ Configuration
+
+Important settings include:
+
+```text
+DEEPGUARD_MODEL_DIR
+DEEPGUARD_MODEL_PATH
+DEEPGUARD_MODEL_NAME
+DEEPGUARD_UPLOAD_DIR
+DEEPGUARD_REPORT_DIR
+DEEPGUARD_VIDEO_SAMPLE_FPS
+DEEPGUARD_MAX_VIDEO_FRAMES
+DEEPGUARD_FRAME_SCORE_THRESHOLD
+```
+
+## 🚀 Run the Backend
+
+```powershell
+cd "D:\deep fake model\backend"
+& ".\.venv\Scripts\Activate.ps1"
+python -m uvicorn app.main:app --reload
+```
+
+Backend:
+
+```text
+http://127.0.0.1:8000
+```
+
+Swagger:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+## 🌐 API Endpoints
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/health` | Health check |
+| POST | `/api/detect/image` | Analyze an image |
+| POST | `/api/detect/video` | Analyze a video |
+| GET | `/api/history` | List detection history |
+| DELETE | `/api/history/{detection_id}` | Delete history |
+| GET | `/api/report/{detection_id}` | Download a report |
+
+## 🧪 Verification
+
+Check the configured model:
+
+```powershell
+python -c "from app.config import get_settings; s=get_settings(); print('MODEL PATH =', s.model_path); print('EXISTS =', s.model_path.exists()); print('MODEL NAME =', s.model_name)"
+```
+
+Expected:
+
+```text
+EXISTS = True
+MODEL NAME = deepguard_efficientnet_b0
+```
+
+## 🐳 Docker
+
+The repository contains:
+
+```text
+Dockerfile
+docker-compose.yml
+```
+
+These provide a basis for containerized deployment. GPU support and model/data mounting should be configured for the target environment.
+
+## ⚠️ Limitations
+
+DeepGuard AI is an experimental AI-based detection system.
+
+- A prediction is not definitive proof of manipulation or authenticity.
+- The checkpoint was evaluated on the project's test split and may not generalize to every real-world source.
+- AI-generated artwork, stylized images, heavy compression, screenshots, social-media recompression, and unseen manipulation methods may behave differently from the training data.
+- Face detection quality affects face-based classification.
+- Video analysis uses sampled frames rather than every frame.
+- Confidence is the model's output score, not a guarantee of truth.
+
+Use results as decision-support signals and combine them with appropriate human review for important decisions.
+
+## 🔐 Repository Hygiene
+
+Do not commit:
+
+```text
+.venv/
+.env
 uploads/
-reports/
+private/generated reports
+large private datasets
+temporary files
 ```
 
-## Installation
+Before pushing to GitHub:
 
-### 1. Backend setup
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+```powershell
+git status
+git check-ignore .env
+git check-ignore backend/.venv
 ```
 
-Backend URL:
+## 📌 Current Status
 
-- `http://localhost:8000`
-- Swagger docs: `http://localhost:8000/docs`
+The project currently includes:
 
-### 2. Frontend setup
+- Trained EfficientNet-B0 checkpoint
+- Face-based image inference
+- Frame-based video inference
+- REAL/DEEPFAKE classification
+- Confidence scoring
+- Suspicious-frame reporting
+- FastAPI backend
+- Dashboard frontend
+- Detection history
+- Downloadable reports
+- CUDA inference support
+- Swagger API documentation
+- Dataset preparation pipeline
+- Face extraction pipeline
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend URL:
-
-- `http://localhost:5173`
-
-If needed, set `VITE_API_BASE_URL` to match your backend API location.
-
-### 3. Environment configuration
-
-Copy `.env.example` to `.env` and adjust values as needed.
-
-Key variables:
-
-- `DEEPGUARD_MODEL_PATH`
-- `DEEPGUARD_MAX_UPLOAD_MB`
-- `DEEPGUARD_VIDEO_SAMPLE_FPS`
-- `DEEPGUARD_MAX_VIDEO_FRAMES`
-- `DEEPGUARD_FRAME_SCORE_THRESHOLD`
-
-## Model Setup
-
-Place a trained `.pt` or `.pth` checkpoint inside `models/`, then point `DEEPGUARD_MODEL_PATH` to it.
-
-Current classifier integration expects an EfficientNet-B0 style binary classifier with a single-logit output head.
-
-If no checkpoint exists:
-
-- the backend does not crash
-- the API continues to function
-- the returned mode is `baseline`
-- the UI should be presented as a demo/development workflow, not benchmarked detection performance
-
-## Dataset and Training
-
-No dataset is downloaded automatically.
-
-Recommended public datasets:
-
-- FaceForensics++
-- Celeb-DF
-- DFDC
-
-Training workspace:
-
-- `training/train.py`
-- `training/evaluate.py`
-- `training/dataset.py`
-- `training/config.py`
-
-Expected dataset layout example:
-
-```text
-data/
-  faceforensics/
-    real/
-    fake/
-```
-
-Run training:
-
-```bash
-cd training
-python train.py
-python evaluate.py
-```
-
-Evaluation script reports:
-
-- Accuracy
-- Precision
-- Recall
-- F1 Score
-- ROC-AUC
-- Confusion Matrix
-
-## API Summary
-
-- `GET /api/health`
-- `POST /api/detect/image`
-- `POST /api/detect/video`
-- `GET /api/history`
-- `DELETE /api/history/{id}`
-- `GET /api/report/{id}`
-
-Detailed endpoint notes are in [docs/api.md](docs/api.md).
-
-## Testing
-
-Backend tests cover:
-
-- health endpoint
-- image upload validation
-- image detection endpoint
-- history retrieval
-
-Frontend includes a starter component test for the upload zone.
-
-Recommended commands after installing dependencies:
-
-```bash
-cd backend
-python -m pytest tests
-```
-
-```bash
-cd frontend
-npm test
-```
-
-## Docker
-
-Backend container workflow:
-
-```bash
-docker-compose up --build
-```
-
-This currently focuses on the backend service and mounted model/report/upload directories.
-
-## Troubleshooting
-
-- If `npm` is blocked in PowerShell, use `npm.cmd`.
-- If no trained checkpoint is available, the app will stay in `baseline` mode.
-- If MediaPipe is unavailable on the machine, OpenCV Haar cascades still provide a fallback face detector.
-- Large or unsupported files are rejected by backend validation before analysis begins.
-
-## Limitations
-
-- Baseline mode is not a substitute for a trained detector.
-- Detection results are probabilistic and sensitive to compression, lighting, blur, and dataset bias.
-- The current training scaffold assumes a binary `real` vs `fake` dataset structure.
-- The Docker setup currently packages the backend, not the frontend dev server.
-
-## Ethical Considerations
-
-Deepfake detection tools can produce false positives and false negatives. DeepGuard AI should be used for educational demos, research workflows, and screening support rather than as conclusive proof in legal, disciplinary, or safety-critical contexts.
-
-## Disclaimer
+## 📜 Disclaimer
 
 DeepGuard AI provides an AI-based prediction and should not be treated as definitive proof that media is authentic or manipulated.
+
+Use the system responsibly and combine automated results with appropriate human review when making important decisions.
