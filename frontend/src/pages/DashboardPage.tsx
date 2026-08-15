@@ -20,7 +20,7 @@ export function DashboardPage() {
       <section>
         <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Threat Intelligence</p>
         <h1 className="mt-3 max-w-3xl font-display text-4xl font-bold text-white md:text-6xl">
-          Deepfake detection for images and videos, built for real final-year demos.
+          Deepfake detection for images and videos.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-slate-300">
           Analyze uploads, inspect suspicious frames, review scan history, and keep the detector honest about whether

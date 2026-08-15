@@ -64,7 +64,7 @@ class VideoAnalyzer:
 
         frame_index = 0
         analyzed = 0
-        face_count = 0
+        max_faces_detected = 0
 
         probabilities: list[float] = []
 
@@ -99,11 +99,14 @@ class VideoAnalyzer:
                 # Detect faces
                 # --------------------------------------------------
 
-                faces = self.face_detector.detect(
-                    rgb
-                )
+                faces = self.face_detector.detect(rgb)
 
-                face_count += len(faces)
+                # Same person ko har frame mein dobara count nahi karna.
+                # Sirf kisi single frame mein maximum detected faces report karo.
+                max_faces_detected = max(
+                     max_faces_detected,
+                    len(faces)
+                )
 
                 # --------------------------------------------------
                 # Analyze ONLY the largest face
@@ -292,7 +295,7 @@ class VideoAnalyzer:
                 2,
             ),
 
-            "faces_detected": face_count,
+            "faces_detected": max_faces_detected,
 
             "frames_analyzed": analyzed,
 

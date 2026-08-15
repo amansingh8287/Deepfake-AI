@@ -46,9 +46,9 @@ class FaceDetector:
 
         faces = self.haar.detectMultiScale(
             gray,
-            scaleFactor=1.08,
-            minNeighbors=4,
-            minSize=(40, 40),
+            scaleFactor=1.1,
+            minNeighbors=6,
+            minSize=(65, 65),
         )
 
         detected = []

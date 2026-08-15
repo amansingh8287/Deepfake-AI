@@ -29,7 +29,7 @@ class DeepfakeInferenceService:
         >= 0.70  -> DEEPFAKE
         <  0.70  -> REAL
         """
-        return "DEEPFAKE" if probability >= 0.70 else "REAL"
+        return "DEEPFAKE" if probability >= 0.75 else "REAL"
 
     def analyze_image(self, path: Path) -> dict:
 
