@@ -1,0 +1,52 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Environment / secrets
+.env
+
+# Node
+node_modules/
+dist/
+frontend/.vite/
+
+# Coverage / tooling
+coverage/
+htmlcov/
+backend/.ruff_cache/
+
+# Database
+*.sqlite3
+*.db
+
+# Dataset - DO NOT PUSH
+dataset/
+*.zip
+*.tar
+*.tar.gz
+
+# ML model weights - DO NOT PUSH
+models/*.pth
+models/*.pt
+*.pth
+*.pt
+
+# Runtime uploads
+uploads/*
+!uploads/.gitkeep
+
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Generated reports
+reports/*
+!reports/.gitkeep
+
+backend/reports/*
+!backend/reports/.gitkeep
